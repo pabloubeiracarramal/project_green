@@ -9,7 +9,7 @@ steps:
     args: [
       'run', 'deploy', 'project-green',
       '--image', 'gcr.io/$PROJECT_ID/project_green',
-      '--region', 'eu-southwest1',
+      '--region', 'europe-southwest1',
       '--platform', 'managed',
       '--allow-unauthenticated'
     ]
