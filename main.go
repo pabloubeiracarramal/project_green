@@ -1,48 +1,43 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
+	"context"
 	"log"
 	"net/http"
+	"os"
+
+	"project_green/db"
+	"project_green/internal/handlers"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/joho/godotenv"
 )
 
-type IoTData struct {
-	DeviceID string  `json:"device_id"`
-	Temp     float64 `json:"temperature"`
-	Humidity float64 `json:"humidity"`
-}
-
-func homeHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Hello, Cloud Run with Go!")
-}
-
-func iotDataHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
-		return
-	}
-
-	var data IoTData
-	err := json.NewDecoder(r.Body).Decode(&data)
-	if err != nil {
-		http.Error(w, "Failed to parse request body", http.StatusBadRequest)
-		return
-	}
-
-	response := map[string]interface{}{
-		"status": "received",
-		"data":   data,
-	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
-}
-
 func main() {
-	http.HandleFunc("/", homeHandler)
-	http.HandleFunc("/iot-data", iotDataHandler)
 
-	port := "8080"
-	log.Printf("Server listening on port %s", port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	// Load environment variables from .env file
+	if err := godotenv.Load(); err != nil {
+		log.Printf("No .env file found")
+	}
+
+	// Initialize the database
+	db.InitDB()
+	defer db.DB.Close(context.Background())
+
+	// Initialize chi router
+	r := chi.NewRouter()
+
+	// Register routes
+	handlers.DeviceRoutes(r)
+	handlers.SensorDataRoutes(r)
+
+	// Get the port from the environment variables
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	// Start the server
+	log.Printf("Server running on port %s", port)
+	log.Fatal(http.ListenAndServe(":"+port, r))
 }
