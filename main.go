@@ -1,12 +1,10 @@
 package main
 
 import (
-	"context"
 	"log"
 	"net/http"
 	"os"
 
-	"project_green/db"
 	"project_green/internal/handlers"
 
 	"github.com/go-chi/chi/v5"
@@ -21,8 +19,8 @@ func main() {
 	}
 
 	// Initialize the database
-	db.InitDB()
-	defer db.DB.Close(context.Background())
+	// db.InitDB()
+	// defer db.DB.Close(context.Background())
 
 	// Initialize chi router
 	r := chi.NewRouter()
